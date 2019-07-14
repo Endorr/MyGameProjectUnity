@@ -1,0 +1,170 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class CameraMovement : MonoBehaviour
+{
+
+    Transform[] CameraPos = new Transform[4];//카메라가 위치할 곳들을 배열로 저장
+
+    public int currentPos;//현재 카메라가 위치하고 있는곳
+
+    public GameObject CameraPoint;//위치 0,0,0인 빈 게임오브젝트 하나 만들어서 연결할 것.
+
+    [SerializeField] float CameraPointerMoveSpeed;
+
+    enum Ways { W, A, S, D };
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        currentPos = 0;
+        CameraPointerMoveSpeed = 1.0f;
+
+        for(int i = 0; i < 4; i++)
+        {
+            CameraPos[i] = new GameObject().GetComponent<Transform>();//배열에 값 할당
+        }
+
+        CameraPos[0].position = new Vector3(35, 30, -30);//지금은 위치가 고정되어 있기 때문에 
+        CameraPos[0].rotation= Quaternion.Euler(30, -45, 0);
+        CameraPos[1].position = new Vector3(35,30,30);
+        CameraPos[1].rotation = Quaternion.Euler(30, 225, 0);
+        CameraPos[2].position = new Vector3(-35,30,30);
+        CameraPos[2].rotation = Quaternion.Euler(30, 135, 0);
+        CameraPos[3].position = new Vector3(-35,30,-30);
+        CameraPos[3].rotation = Quaternion.Euler(30, 45, 0);
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.E)){
+            if (currentPos == 3)
+            {
+                currentPos = 0;
+                changeAngle(currentPos);
+            }
+            else
+            {
+                changeAngle(++currentPos);
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            if (currentPos == 0)
+            {
+                currentPos = 3;
+                changeAngle(currentPos);
+            }
+            else
+            {
+                changeAngle(--currentPos);
+            }
+        }
+
+        if (Input.GetKey(KeyCode.W))
+        {
+            cameraMove(Ways.W);
+        }
+
+        if (Input.GetKey(KeyCode.S))
+        {
+            cameraMove(Ways.S);
+        }
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            cameraMove(Ways.A);
+        }
+
+        if (Input.GetKey(KeyCode.D))
+        {
+            cameraMove(Ways.D);
+        }
+    }
+
+    void changeAngle(int a)
+    {
+        if (a >= 0 && a < 4) {
+            gameObject.transform.position = CameraPos[a].position + CameraPoint.GetComponent<Transform>().position;
+            gameObject.transform.rotation = CameraPos[a].rotation;
+         }
+    }
+
+    void cameraMove(Ways a)
+    {
+        Debug.Log(CameraPoint.GetComponentInParent<Transform>());
+        switch (currentPos) {
+            case 0:
+                switch (a)
+                {
+                    case Ways.W:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1*CameraPointerMoveSpeed, 0, CameraPointerMoveSpeed);
+                        break;
+                    case Ways.A:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1 * CameraPointerMoveSpeed, 0, -1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.S:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(CameraPointerMoveSpeed, 0, -1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.D:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(CameraPointerMoveSpeed, 0, CameraPointerMoveSpeed);
+                        break;
+                }
+                break;
+            case 1:
+                switch (a)
+                {
+                    case Ways.W:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1*CameraPointerMoveSpeed, 0, -1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.A:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(1 * CameraPointerMoveSpeed, 0, -1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.S:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(1 * CameraPointerMoveSpeed, 0, 1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.D:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1*CameraPointerMoveSpeed, 0, CameraPointerMoveSpeed);
+                        break;
+                }
+                break;
+            case 2:
+                switch (a)
+                {
+                    case Ways.W:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(1 * CameraPointerMoveSpeed, 0, -1*CameraPointerMoveSpeed);
+                        break;
+                    case Ways.A:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(1 * CameraPointerMoveSpeed, 0, 1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.S:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1 * CameraPointerMoveSpeed, 0, 1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.D:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1*CameraPointerMoveSpeed, 0, -1 * CameraPointerMoveSpeed);
+                        break;
+                }
+                break;
+            case 3:
+                switch (a)
+                {
+                    case Ways.W:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(1*CameraPointerMoveSpeed, 0, 1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.A:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1 * CameraPointerMoveSpeed, 0, 1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.S:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(-1 * CameraPointerMoveSpeed, 0, -1 * CameraPointerMoveSpeed);
+                        break;
+                    case Ways.D:
+                        CameraPoint.GetComponentInParent<Transform>().Translate(1 * CameraPointerMoveSpeed, 0,-1* CameraPointerMoveSpeed);
+                        break;
+                }
+                break;
+        }
+    }
+}
