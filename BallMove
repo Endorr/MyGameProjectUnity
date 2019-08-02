@@ -1,0 +1,54 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Distance : MonoBehaviour
+{
+    public bool isClicked;
+    public Text text;
+    Vector3 mouseWorldPos;
+    [SerializeField]
+    int multiplyer = 30;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        isClicked = false;    
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            isClicked = true;
+        }
+
+        if (isClicked)
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                mouseWorldPos = hit.point;
+            }
+
+            //text.text = Vector3.Distance(gameObject.transform.position, mouseWorldPos).ToString();
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            isClicked = false;
+            gameObject.GetComponent<Rigidbody>().velocity=new Vector3((gameObject.transform.position.x-mouseWorldPos.x)*multiplyer,0, (gameObject.transform.position.z - mouseWorldPos.z)*multiplyer)*multiplyer;
+        }
+
+        text.text = gameObject.GetComponent<Rigidbody>().velocity.magnitude.ToString();
+
+        if (gameObject.GetComponent<Rigidbody>().velocity.magnitude < 2.0f)
+        {
+            gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        }
+    }
+}
