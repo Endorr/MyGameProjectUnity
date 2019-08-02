@@ -5,12 +5,12 @@ using UnityEngine.UI;
 
 public class Distance : MonoBehaviour
 {
-    public bool isClicked;
-    public Text text;
-    Vector3 mouseWorldPos;
+    public bool isClicked; //이 물체가 마우스로 클릭된 상태인지를 보여줌
+    public Text text; //현재 물체에 가해지는 힘값을 보여줌
+    Vector3 mouseWorldPos; //내가 현재 가져다댄 마우스 위치를 UI 화면이 아닌 게임 내부의 3차원 좌표로 저장
     [SerializeField]
-    int multiplyer = 30;
-
+    int multiplyer = 30; //속도 조절을 위한 변수. 키우면 속도가 빨라짐
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -27,18 +27,18 @@ public class Distance : MonoBehaviour
 
         if (isClicked)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition); //현재 UI상의 마우스 포지션에서부터 가상의 레이저를 쏨
+            RaycastHit hit; //레이저 충돌에 대한 정보를 저장
 
-            if (Physics.Raycast(ray, out hit))
+            if (Physics.Raycast(ray, out hit)) //레이저가 맞으면
             {
-                mouseWorldPos = hit.point;
+                mouseWorldPos = hit.point; //해당 위치를 마우스 현재 마우스 위치로 저장
             }
 
             //text.text = Vector3.Distance(gameObject.transform.position, mouseWorldPos).ToString();
         }
 
-        if (Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0)) //마우스로 클릭했다가 놓으면
         {
             isClicked = false;
             gameObject.GetComponent<Rigidbody>().velocity=new Vector3((gameObject.transform.position.x-mouseWorldPos.x)*multiplyer,0, (gameObject.transform.position.z - mouseWorldPos.z)*multiplyer)*multiplyer;
@@ -46,7 +46,7 @@ public class Distance : MonoBehaviour
 
         text.text = gameObject.GetComponent<Rigidbody>().velocity.magnitude.ToString();
 
-        if (gameObject.GetComponent<Rigidbody>().velocity.magnitude < 2.0f)
+        if (gameObject.GetComponent<Rigidbody>().velocity.magnitude < 2.0f) //속도가 일정이하로 내려가면 멈춤
         {
             gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
         }
