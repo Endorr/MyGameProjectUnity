@@ -1,0 +1,548 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class Maze : MonoBehaviour {
+
+    [SerializeField] static int mapSize = 11;//미로는 mapSize*mapSize 갯수의 grid 클래스로 이루어진다.
+    [SerializeField] float resetTime=10.0f;
+    float minusTime = 0.0f;
+    public Text text;
+
+    public GameObject []FloorArray=new GameObject[11];
+    grid[,] map = new grid[mapSize, mapSize];//지정한 크기의 맵 생성
+
+    public class grid {//각 타일을 클래스의 형식으로 저장한다
+        public bool isVisit;//방문 여부 표시
+
+        public bool Carve_N = false;//벽 존재 여부를 표시하는 bool값 true면 뚫려있는 것이다.(true가 벽이 없는 것이다. 헷갈리지 말자)
+        public bool Carve_E = false;
+        public bool Carve_W = false;
+        public bool Carve_S = false;
+
+        public grid grid_N;//옆 그리드의 위치를 저장
+        public grid grid_E;
+        public grid grid_W;
+        public grid grid_S;
+
+        public int x;//각 타일들의 위치값을 저장
+        public int y;
+
+        public int tileNum;
+
+        public grid()
+        {
+            isVisit = false;
+            grid_N = null;
+            grid_E = null;
+            grid_W = null;
+            grid_S = null;
+        }
+
+        public void carve(grid a)//그리드 사이의 벽을 뚫는 함수
+        {
+            if (a.Equals(grid_N))
+            {
+                Carve_N = true;
+                a.Carve_S = true;
+            }
+            else if (a.Equals(grid_S))
+            {
+                Carve_S = true;
+                a.Carve_N = true;
+            }
+            else if (a.Equals(grid_E))
+            {
+                Carve_E = true;
+                a.Carve_W = true;
+            }
+            else if(a.Equals(grid_W))
+            {
+                Carve_W = true;
+                a.Carve_E = true;
+            }
+        }
+    }
+
+    // Use this for initialization
+    void Start () {
+        for (int i = 0; i < mapSize; i++)
+        {
+            for (int j = 0; j < mapSize; j++)
+            {
+                map[i, j] = new grid();
+            }
+        }
+        linkGrid(map);//각 타일 그리드를 전부 연결
+        makeMaze(map);//알고리즘에 따라 맵생성
+        chooseTile(map);//생성된 맵을 번호로 바꿈
+        for(int i = 0; i < mapSize; i++)
+        {
+            for(int j = 0; j < mapSize; j++)
+            {
+                FloorArray[i].transform.GetChild(j).GetComponent<Wall_Move>().Pattern = map[i,j].tileNum;//번호로 바꾼 맵 정보를 각 타일에 보내줌
+            }
+        }
+	} 
+	
+	
+	// Update is called once per frame
+	void Update () {
+        if (Time.time > minusTime) {
+            minusTime = Time.time + resetTime;
+            remade(map);
+        }
+        text.GetComponent<Text>().text = (minusTime-Time.time).ToString();
+	}
+
+    void linkGrid(grid[,] map)
+    {
+        for(int i = 0; i < mapSize; i++)
+        {
+            for (int j = 0; j < mapSize; j++)
+            {
+               map[i, j].x = i;
+               map[i, j].y = j;
+
+                if (i != 0)
+                {
+                    map[i, j].grid_N = map[i - 1, j];
+                }
+
+                if (i != mapSize - 1)
+                {
+                    map[i, j].grid_S = map[i + 1, j];
+                }
+
+                if (j != 0)
+                {
+                    map[i, j].grid_W = map[i, j - 1];
+                }
+
+                if (j != mapSize - 1)
+                {
+                    map[i, j].grid_E = map[i, j + 1];
+                }
+            }
+        }
+    }
+
+    void anotherCarve(grid a)
+    {
+        string temp = "";
+        if (a.grid_N != null)
+        {
+            if (a.grid_N.isVisit == true)
+            {
+                temp += "N";
+            }
+        }
+
+        if (a.grid_E != null)
+        {
+            if (a.grid_E.isVisit == true)
+            {
+                temp += "E";
+            }
+        }
+
+        if (a.grid_W != null)
+        {
+            if (a.grid_W.isVisit == true)
+            {
+                temp += "W";
+            }
+        }
+
+        if (a.grid_S != null)
+        {
+            if (a.grid_S.isVisit == true)
+            {
+                temp += "S";
+            }
+        }
+
+        switch (temp.Length)
+        {
+            case 1:
+                if (temp.Contains("N"))
+                {
+                    a.carve(a.grid_N);
+                }
+                if (temp.Contains("E"))
+                {
+                    a.carve(a.grid_E);
+                }
+                if (temp.Contains("W"))
+                {
+                    a.carve(a.grid_W);
+                }
+                if (temp.Contains("S"))
+                {
+                    a.carve(a.grid_S);
+                }
+                break;
+            case 2:
+                int num=Random.Range(1,3);
+                if (temp.Contains("NE"))
+                {
+                    if (num == 1)
+                    {
+                        a.carve(a.grid_N);
+                    }
+                    else
+                    {
+                        a.carve(a.grid_E);
+                    }
+                }
+                if (temp.Contains("NW"))
+                {
+                    if (num == 1)
+                    {
+                        a.carve(a.grid_N);
+                    }
+                    else
+                    {
+                        a.carve(a.grid_W);
+                    }
+                }
+                if (temp.Contains("NS"))
+                {
+                    if (num == 1)
+                    {
+                        a.carve(a.grid_N);
+                    }
+                    else
+                    {
+                        a.carve(a.grid_S);
+                    }
+                }
+                if (temp.Contains("EW"))
+                {
+                    if (num == 1)
+                    {
+                        a.carve(a.grid_E);
+                    }
+                    else
+                    {
+                        a.carve(a.grid_W);
+                    }
+                }
+                if (temp.Contains("ES"))
+                {
+                    if (num == 1)
+                    {
+                        a.carve(a.grid_E);
+                    }
+                    else
+                    {
+                        a.carve(a.grid_S);
+                    }
+                }
+                if (temp.Contains("WS"))
+                {
+                    if (num == 1)
+                    {
+                        a.carve(a.grid_W);
+                    }
+                    else
+                    {
+                        a.carve(a.grid_S);
+                    }
+                }
+                break;
+            case 3:
+                if (!temp.Contains("N"))
+                {
+                    switch (Random.Range(1, 4))
+                    {
+                        case 1:
+                            a.carve(a.grid_E);
+                            break;
+                        case 2:
+                            a.carve(a.grid_W);
+                            break;
+                        case 3:
+                            a.carve(a.grid_S);
+                            break;
+                    }
+                }
+                if (!temp.Contains("E"))
+                {
+                    switch (Random.Range(1, 4))
+                    {
+                        case 1:
+                            a.carve(a.grid_N);
+                            break;
+                        case 2:
+                            a.carve(a.grid_W);
+                            break;
+                        case 3:
+                            a.carve(a.grid_S);
+                            break;
+                    }
+                }
+                if (!temp.Contains("W"))
+                {
+                    switch (Random.Range(1, 4))
+                    {
+                        case 1:
+                            a.carve(a.grid_N);
+                            break;
+                        case 2:
+                            a.carve(a.grid_E);
+                            break;
+                        case 3:
+                            a.carve(a.grid_S);
+                            break;
+                    }
+                }
+                if (!temp.Contains("S"))
+                {
+                    switch (Random.Range(1, 4))
+                    {
+                        case 1:
+                            a.carve(a.grid_N);
+                            break;
+                        case 2:
+                            a.carve(a.grid_E);
+                            break;
+                        case 3:
+                            a.carve(a.grid_W);
+                            break;
+                    }
+                }
+                break;
+            case 4:
+                switch (Random.Range(1, 5)) {
+                    case 1:
+                        a.carve(a.grid_N);
+                        break;
+                    case 2:
+                        a.carve(a.grid_E);
+                        break;
+                    case 3:
+                        a.carve(a.grid_S);
+                        break;
+                    case 4:
+                        a.carve(a.grid_W);
+                        break;
+                }
+                break;
+        }
+    }
+
+    grid findUnVisit(grid[,] map)
+    {
+        for(int i = 0; i < mapSize; i++)
+        {
+            for(int j = 0; j < mapSize; j++)
+            {
+                if (map[i, j].isVisit == false&&neighborCheck(map[i,j]))
+                {
+                    return map[i, j];
+                }
+            }
+        }
+        return null;
+    }
+
+    void makeMaze(grid[,] map)//미궁 생성 알고리즘
+    {
+        int i = Random.Range(0,mapSize);
+        int j = Random.Range(0, mapSize);
+        map[i,j].isVisit = true;
+
+        while (findUnVisit(map)!=null)
+        {
+            map[i, j].isVisit = true;
+            int temp;
+
+            temp = Random.Range(1, 5);
+
+            if (findUnVisit(map)!=null)
+            {
+                grid tempGrid = findUnVisit(map);
+
+                switch (temp)
+                {
+                    case 1:
+                        if (map[i, j].grid_N != null && map[i, j].grid_N.isVisit != true)
+                        {
+                            map[i, j].carve(map[i, j].grid_N);
+                            i -= 1;
+                        }
+                        else
+                        {
+                            i = tempGrid.x;
+                            j = tempGrid.y;
+                            anotherCarve(map[i, j]);
+                        }
+                        break;
+                    case 2:
+                        if (map[i, j].grid_W != null && map[i, j].grid_W.isVisit != true)
+                        {
+                            map[i, j].carve(map[i, j].grid_W);
+                            j -= 1;
+                        }
+                        else
+                        {
+                            i = tempGrid.x;
+                            j = tempGrid.y;
+                            anotherCarve(map[i, j]);
+                        }
+                        break;
+                    case 3:
+                        if (map[i, j].grid_S != null && map[i, j].grid_S.isVisit != true)
+                        {
+                            map[i, j].carve(map[i, j].grid_S);
+                            i += 1;
+                        }
+                        else
+                        {
+                            i = tempGrid.x;
+                            j = tempGrid.y;
+                            anotherCarve(map[i, j]);
+                        }
+                        break;
+                    case 4:
+                        if (map[i, j].grid_E != null && map[i, j].grid_E.isVisit != true)
+                        {
+                            map[i, j].carve(map[i, j].grid_E);
+                            j += 1;
+                        }
+                        else
+                        {
+                            i = tempGrid.x;
+                            j = tempGrid.y;
+                            anotherCarve(map[i, j]);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        for(i = 0; i < mapSize; i++)
+        {
+            for(j = 0; j < mapSize; j++)
+            {
+                map[i, j].isVisit = false;
+            }
+        }
+    }
+
+    void chooseTile(grid[,] map)
+    {
+        for(int i = 0; i < mapSize; i++)
+        {
+            for(int j = 0; j < mapSize; j++)
+            {
+                string temp = "";
+                if (map[i, j].Carve_N)
+                    temp += "N";
+                if (map[i, j].Carve_E)
+                    temp += "E";
+                if (map[i, j].Carve_W)
+                    temp += "W";
+                if (map[i, j].Carve_S)
+                    temp += "S";
+
+                switch (temp)
+                {
+                    case "NEWS":
+                        map[i, j].tileNum =1;
+                        break;
+                    case "NES":
+                        map[i, j].tileNum = 2;
+                        break;
+                    case "EWS":
+                        map[i, j].tileNum = 3;
+                        break;
+                    case "NWS":
+                        map[i, j].tileNum = 4;
+                        break;
+                    case "NEW":
+                        map[i, j].tileNum = 5;
+                        break;
+                    case "ES":
+                        map[i, j].tileNum = 6;
+                        break;
+                    case "WS":
+                        map[i, j].tileNum = 7;
+                        break;
+                    case "NW":
+                        map[i, j].tileNum = 8;
+                        break;
+                    case "NE":
+                        map[i, j].tileNum = 9;
+                        break;
+                    case "N":
+                        map[i, j].tileNum = 10;
+                        break;
+                    case "E":
+                        map[i, j].tileNum = 11;
+                        break;
+                    case "S":
+                        map[i, j].tileNum = 12;
+                        break;
+                    case "W":
+                        map[i, j].tileNum = 13;
+                        break;
+                    case "EW":
+                        map[i, j].tileNum = 14;
+                        break;
+                    case "NS":
+                        map[i, j].tileNum = 15;
+                        break;
+                }
+            }
+        }
+    }
+
+    bool neighborCheck(grid a) {
+        if(a.grid_N!=null){
+            if(a.grid_N.isVisit==true){
+                return true;
+            }
+        }
+        if (a.grid_E != null) {
+            if (a.grid_E.isVisit == true) {
+                return true;
+            }
+        }
+        if (a.grid_W != null) {
+            if (a.grid_W.isVisit == true) {
+                return true;
+            }
+        }
+        if (a.grid_S != null) {
+            if (a.grid_S.isVisit == true) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void remade(grid [,] map) {
+        for(int i = 0; i < mapSize; i++) {
+            for(int j = 0; j < mapSize; j++) {
+                map[i, j].isVisit = false;
+                map[i, j].Carve_N = false;
+                map[i, j].Carve_E = false;
+                map[i, j].Carve_W = false;
+                map[i, j].Carve_S = false;
+            }
+        }
+        makeMaze(map);
+        chooseTile(map);
+        for (int i = 0; i < mapSize; i++) {
+            for (int j = 0; j < mapSize; j++) {
+                FloorArray[i].transform.GetChild(j).GetComponent<Wall_Move>().Pattern = map[i, j].tileNum;//번호로 바꾼 맵 정보를 각 타일에 보내줌
+            }
+        }
+    }
+}
