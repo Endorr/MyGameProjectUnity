@@ -1,0 +1,211 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class BlockMove : MonoBehaviour//모든 블록은 한 칸짜리 블록들을 자식 객체로 가지는 빈 객체
+{
+    GameObject mainCamera;
+    GameObject BlockMaker;
+    GameObject text;
+    public float speed;
+
+    float hard = 0f;
+    public bool isStop = false;
+    int rotationNum = 0;
+    int rotationNum2 = 0;
+
+    float formerY;
+
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        formerY = gameObject.transform.position.y-10;
+        mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+        BlockMaker = GameObject.FindGameObjectWithTag("BlockMaker");
+        StartCoroutine(MoveDown());
+    }
+
+    IEnumerator MoveDown()//하강하는 속도는 난이도에 따라 변화
+    {
+        while (!isStop)
+        {
+            gameObject.GetComponent<Rigidbody>().velocity = new Vector3(0, -1.0f, 0);
+            yield return new WaitForSeconds(3 - hard);
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        gameObject.transform.localScale = new Vector3(0.99f, 0.99f, 0.99f);
+        speed = gameObject.GetComponent<Rigidbody>().velocity.magnitude;
+
+        if (gameObject.tag != "OneBox")
+        {
+            if (gameObject.transform.childCount == 0)
+            {
+                Destroy(gameObject);
+            }
+
+        }
+
+        if (gameObject.GetComponent<Rigidbody>().velocity.magnitude==0)
+        { 
+                isStop = true;
+                BlockMaker.GetComponent<MakeBlock>().movingBlock = false;
+                enabled = false;//이 블록은 더 이상 움직이지 않는 다는 것을 표시   
+        }
+        /*WASD를 통해 블록 이동, 화살표를 통해 블록 회전 구현*/
+        if (Input.GetKeyDown(KeyCode.W)&&!isStop)
+        {
+            moveBlock(mainCamera.GetComponent<CameraMovement>().currentPos, 'W');
+        }
+
+        if (Input.GetKeyDown(KeyCode.A)&&!isStop)
+        {
+            moveBlock(mainCamera.GetComponent<CameraMovement>().currentPos, 'A');
+        }
+
+        if (Input.GetKeyDown(KeyCode.S) && !isStop)
+        {
+            moveBlock(mainCamera.GetComponent<CameraMovement>().currentPos, 'S');
+        }
+
+        if (Input.GetKeyDown(KeyCode.D) && !isStop)
+        {
+            moveBlock(mainCamera.GetComponent<CameraMovement>().currentPos, 'D');
+        }
+
+        if (Input.GetKey(KeyCode.Space) && !isStop)
+        {
+            gameObject.GetComponent<Rigidbody>().AddForce(new Vector3(0, -10, 0));
+        }
+
+        if (Input.GetKeyDown(KeyCode.UpArrow) && !isStop)
+        {
+            gameObject.transform.rotation = Quaternion.Euler(90 * ++rotationNum, 0, 0);
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow) && !isStop)
+        {
+            gameObject.transform.rotation = Quaternion.Euler(90 * --rotationNum , 0, 0);
+        }
+        
+        
+    }
+
+    public void changeHard(float a)
+    {
+        if (a <= 4.0)
+        {
+            hard = a;
+        }
+    }
+
+
+    public void moveBlock(int currentPose, char dir)//QE버튼을 통해 카메라 회전이 가능하기 때문에 매개변수로 카메라의 현 위치를 받음
+    {
+        switch (currentPose)
+        {
+            case 0:
+                switch (dir)
+                {
+                    case 'W':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z + 1);
+                        break;
+                    case 'A':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x - 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                    case 'S':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z - 1);
+                        break;
+                    case 'D':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x + 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                }
+                break;
+            case 1:
+                switch (dir)
+                {
+                    case 'W':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x - 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                    case 'A':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z - 1);
+                        break;
+                    case 'S':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x + 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                    case 'D':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z + 1);
+                        break;
+                }
+                break;
+            case 2:
+                switch (dir)
+                {
+                    case 'W':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z - 1);
+                        break;
+                    case 'A':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x + 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                    case 'S':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z + 1);
+                        break;
+                    case 'D':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x - 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                }
+                break;
+            case 3:
+                switch (dir)
+                {
+                    case 'W':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x + 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                    case 'A':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z + 1);
+                        break;
+                    case 'S':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x - 1, gameObject.transform.position.y, gameObject.transform.position.z);
+                        break;
+                    case 'D':
+                        gameObject.transform.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, gameObject.transform.position.z - 1);
+                        break;
+                }
+                break;
+        }
+
+        for (int i = 0; i < gameObject.transform.childCount; i++)
+        {
+            if (boundaryCheck(gameObject.transform.GetChild(i)))
+            {
+                gameObject.transform.GetChild(i).GetComponent<OneBox>().clear();
+            }
+        }
+
+        if (gameObject.tag == "OneBox")
+        {
+            if (boundaryCheck(gameObject.transform))
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
+
+    bool boundaryCheck(Transform a)//맵 밖으로 블록이 넘어갔는지를 체크
+    {
+        if (a.position.x < -2.5 || a.position.x > 2.5 || a.position.z < -2.5 || a.position.z > 2.5)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+}
